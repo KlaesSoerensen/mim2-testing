@@ -10,7 +10,11 @@ import { DOCUMENT } from '@angular/common';
   <main class="main" #compRootElement>
     <div id="solidjs-inlay-root"></div>
   </main>`,
-  styleUrl: './app.component.css'
+  styles: `
+    .keyboard-container{background-color:red}
+    .app{background-color:gray}
+
+  `
 })
 export class AppComponent {
     private injectionComplete = false;
