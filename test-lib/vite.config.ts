@@ -16,5 +16,12 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/index.js',  // Set a fixed name for the JS file
+        chunkFileNames: 'assets/[name].js', // Set a fixed name pattern for chunks
+        assetFileNames: 'assets/[name].[ext]' // Set a fixed name pattern for assets
+      }
+    }
   },
 });
