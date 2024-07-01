@@ -8,27 +8,21 @@ import { DOCUMENT } from '@angular/common';
   imports: [RouterOutlet],
   template: `
   <main class="main" #compRootElement>
-    <p>Root is below this guy</p>
-    <div id="solidjs-inlay-root">PLACEHOLDER</div>
+    <div id="solidjs-inlay-root"></div>
   </main>`,
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-
-    @ViewChild('compRootElement', { static: true }) compRootElement!: ElementRef<HTMLDivElement>;
     private injectionComplete = false;
 
-    constructor(
-        private _renderer2: Renderer2, 
-        @Inject(DOCUMENT) private _document: Document
-    ) { 
+    constructor() { 
       afterNextRender(() => {
         if (!this.injectionComplete) {
           //@ts-ignore
           import("../../../test-lib/dist/assets/index.js")
-          //^ this line imports the code from the test-lib
-          //which also auto-executes when evaluated
-          //which will only happen on the client browser
+          //^ this line imports the text contents of the code from the test-lib file
+          //which happens to be javascript in a closure and auto-executes when evaluated
+          //which will only happen on the client browser, after initial render
           //which happens to be having a component by the id of "solidjs-inlay-root" at the time this runs
           //how is this even possible? Why?
           this.injectionComplete = true;
