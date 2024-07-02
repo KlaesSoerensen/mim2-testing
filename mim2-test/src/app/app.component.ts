@@ -17,20 +17,8 @@ import { DOCUMENT } from '@angular/common';
   `
 })
 export class AppComponent {
-    private injectionComplete = false;
-
-    constructor() { 
-      afterNextRender(() => {
-        if (!this.injectionComplete) {
-          //@ts-ignore
-          import("../../../test-lib/dist/assets/index.js")
-          //^ this line imports the text contents of the code from the test-lib file
-          //which happens to be javascript in a closure and auto-executes when evaluated
-          //which will only happen on the client browser, after initial render
-          //which happens to be having a component by the id of "solidjs-inlay-root" at the time this runs
-          //how is this even possible? Why?
-          this.injectionComplete = true;
-        }
-      });
+    constructor() {
+      //@ts-ignore
+      afterNextRender(() => {import("../../../test-lib/dist/assets/index.js")});
     }
 }

@@ -117,7 +117,7 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
     const kbKeyHtmlElementMap = new Map<string, HTMLElement>();
     props.highlighted = props.highlighted || [];
     props.ignored = props.ignored || [];
-    props.showHands = props.showHands || true;
+    props.showHands = props.showHands || false;
     props.ignoreSpecialKeys = props.ignoreSpecialKeys || false;
     props.ignoreNumericKeys = props.ignoreNumericKeys || false;
     props.ignoreAlphabeticKeys = props.ignoreAlphabeticKeys || false;
