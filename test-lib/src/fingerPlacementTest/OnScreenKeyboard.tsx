@@ -1,129 +1,105 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { createEffect } from "solid-js";
 import { css } from '@emotion/css';
+import { KeyElement, SymbolType, DK_KEYBOARD_LAYOUT, FINGER_COLORS } from '../ts/KeyBoardLayouts';
 import handpath from '../assets/svg/handpath.svg';
 
 interface OnScreenKeyboardProps {
+    /**
+     * Keys that should be highlighted.
+     * @default []
+     */
     highlighted?: string[];
+    /**
+     * Keys that should be ignored. See the shorthand properties for ignoring specific types of keys.
+     * @default []
+     */
     ignored?: string[];
+    /**
+     * Show hand handplacement on the keyboard.
+     * @default false
+     */
     showHands?: boolean;
     /**
+     * Show intended finger use for each key by coloring each key accordingly.
+     * @default true
+     */
+    showIntendedFingerUseForKey?: boolean;
+    /**
+     * Relates to the "showIntendedFingerUseForKey" property
+     * Hard shade the key with the gradient of the finger(s) available for the key.
+     * (Constant / no interpolation of colors vs. linear gradient)
+     * @default true
+     */
+    hardShadeMultiFingerKeyGradients?: boolean;
+    /**
+     * Relates to the "showIntendedFingerUseForKey" property
+     * The intensity of the colorization. 0 is no colorization, 1 is full colorization.
+     * @default 1
+     */
+    colorizationIntensity?: number;
+    /**
+     * Relates to the showIntendedFingerUseForKey property.
+     * When set, the keyboard will highlight only the intended finger use for the given fingering scheme.
+     * @default -1 (disabled)
+     */
+    fingeringSchemeFocused?: number;
+    /**
      * Keys like CMD, ALT, SHIFT, etc. that are not printable characters.
+     * @default false
      */
     ignoreSpecialKeys?: boolean;
+    /**
+     * Numeric keys 0-9 and ½.
+     * @default false
+     */
     ignoreNumericKeys?: boolean;
+    /**
+     * Alphabetic keys a-z and special language specific characters like: æ ø å.
+     * @default false
+     */
     ignoreAlphabeticKeys?: boolean;
+    /**
+     * Grammatical symbols like: , . ! ?.
+     * @default false
+     */
     ignoreGrammarKeys?: boolean;
+    /**
+     * Math keys like: + - * / =.
+     * @default false
+     */
     ignoreMathKeys?: boolean;
+    /**
+     * The layout of the keyboard. Each row is an array of KeyElement objects.
+     * @default DK_KEYBOARD_LAYOUT
+     */
     layout?: KeyElement[][];
 }
-
-enum KeyType {
-    Numeric = 'Numeric',
-    Special = 'Special',
-    Alphabetic = 'Alphabetic',
-    Grammar = 'Grammar',
-    Math = 'Math'
-}
-
-type KeyElement = {
-    char: string;
-    width: number;
-    categories: KeyType[];
-};
-
-const kbFirstRow: KeyElement[] = [
-    {char: '½', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '1', width: 1/16, categories: [KeyType.Numeric]}, 
-    {char: '2', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '3', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '4', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '5', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '6', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '7', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '8', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '9', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '0', width: 1/16, categories: [KeyType.Numeric]},
-    {char: '+', width: 1/16, categories: [KeyType.Math]},
-    {char: '´', width: 1/16, categories: [KeyType.Grammar]},
-    {char: '<-', width: 3/16, categories: [KeyType.Special]}
-];
-const kbSecondRow: KeyElement[] = [
-    {char: 'Tab', width: 1.5/16, categories: [KeyType.Special]},
-    {char: 'q', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'w', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'e', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'r', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 't', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'y', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'u', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'i', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'o', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'p', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'å', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: '¨', width: 1/16, categories: [KeyType.Grammar]},
-    {char: 'Enter', width: 2.5/16, categories: [KeyType.Special]}
-];
-const kbThirdRow: KeyElement[] = [
-    {char: 'Caps', width: 1.75/16, categories: [KeyType.Special]},
-    {char: 'a', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 's', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'd', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'f', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'g', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'h', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'j', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'k', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'l', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'æ', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'ø', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: '\'', width: 1/16, categories: [KeyType.Grammar]},
-    {char: 'Enter', width: 2.25/16, categories: [KeyType.Special]}
-];
-const kbFourthRow: KeyElement[] = [
-    {char: 'Shift', width: 1.25/16, categories: [KeyType.Special]},
-    {char: '>', width: 1/16, categories: [KeyType.Grammar]},
-    {char: 'z', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'x', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'c', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'v', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'b', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'n', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: 'm', width: 1/16, categories: [KeyType.Alphabetic]},
-    {char: ',', width: 1/16, categories: [KeyType.Grammar]},
-    {char: '.', width: 1/16, categories: [KeyType.Grammar]},
-    {char: '-', width: 1/16, categories: [KeyType.Grammar]},
-    {char: 'Shift', width: 3.75/16, categories: [KeyType.Special]}
-];
-const kbFifthRow: KeyElement[] = [
-    {char: 'Ctrl', width: 1.5/16, categories: [KeyType.Special]},
-    {char: 'Win', width: 1.25/16, categories: [KeyType.Special]},
-    {char: 'Alt', width: 1.25/16, categories: [KeyType.Special]},
-    {char: 'Space', width: 8/16, categories: [KeyType.Alphabetic]},
-    {char: 'Alt', width: 1.25/16, categories: [KeyType.Special]},
-    {char: 'Win', width: 1.25/16, categories: [KeyType.Special]},
-    {char: 'Ctrl', width: 1.5/16, categories: [KeyType.Special]}
-];
-const defaultLayoutDK = [
-    kbFirstRow,
-    kbSecondRow,
-    kbThirdRow,
-    kbFourthRow,
-    kbFifthRow
-];
-const keySpacing = ".25rem";
-
-export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
-    const kbKeyHtmlElementMap = new Map<string, HTMLElement>();
+const normalizeProps = (props: OnScreenKeyboardProps): OnScreenKeyboardProps => {
     props.highlighted = props.highlighted || [];
+
     props.ignored = props.ignored || [];
-    props.showHands = props.showHands || false;
     props.ignoreSpecialKeys = props.ignoreSpecialKeys || false;
     props.ignoreNumericKeys = props.ignoreNumericKeys || false;
     props.ignoreAlphabeticKeys = props.ignoreAlphabeticKeys || false;
     props.ignoreGrammarKeys = props.ignoreGrammarKeys || false;
     props.ignoreMathKeys = props.ignoreMathKeys || false;
-    props.layout = props.layout || defaultLayoutDK;
+
+    props.showHands = props.showHands || false;
+    props.showIntendedFingerUseForKey = props.showIntendedFingerUseForKey || true;
+    props.fingeringSchemeFocused = props.fingeringSchemeFocused || -1;
+    props.hardShadeMultiFingerKeyGradients = props.hardShadeMultiFingerKeyGradients || true;
+    props.colorizationIntensity = props.colorizationIntensity || 1;
+
+    props.layout = props.layout || DK_KEYBOARD_LAYOUT;
+
+    return props;
+}
+
+const keySpacing = ".25rem";
+
+export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
+    props = normalizeProps(props);
+    const kbKeyHtmlElementMap = new Map<string, HTMLElement>();
 
     const appendDotIfForJ = (key: KeyElement): JSX.Element => {
         if (key.char === 'f' || key.char === 'j') {
@@ -132,16 +108,53 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
         return <></>;
     }
 
+    const colourizeTheButtonIfApplicable = (key: KeyElement, isIgnored: boolean, children: JSX.Element): JSX.Element => {
+        if (!props.showIntendedFingerUseForKey || isIgnored) {
+            return <>{children}</>;
+        }
+        //In the case that a specific scheme is requested OR no alternative fingerings are available
+        if(props.fingeringSchemeFocused != -1 || key.finger.length == 1){
+            let indexToUse = key.finger.length - 1;
+            if(props.fingeringSchemeFocused != -1){
+                indexToUse = props.fingeringSchemeFocused > key.finger.length - 1 ? key.finger.length - 1 : props.fingeringSchemeFocused;
+            }
+            const finger = key.finger[indexToUse];
+            const constColor = `rgba(${FINGER_COLORS[finger]}, ${props.colorizationIntensity})`;
+            //This little repition is needed as linear-gradient requires 2 or more colors inputted at all times.
+            const computedGradient = `linear-gradient(90deg, ${constColor}, ${constColor});`;
+         
+            return <div class={colorOverlayStyle(computedGradient)}>{children}</div>;
+        }
+
+        //In the case that no specific scheme is requested
+        let computedGradient = "linear-gradient(90deg, ";
+        const stepSize = 100 / key.finger.length;
+        for (let i = 0; i < key.finger.length; i++) {
+            const finger = key.finger[i];
+            const color = `rgba(${FINGER_COLORS[finger]}, ${props.colorizationIntensity})`;
+            if(props.hardShadeMultiFingerKeyGradients){
+                computedGradient += `${color} ${stepSize * i}%, ${color} ${(stepSize * (i + 1)) - 1}%`;
+            }else{
+                computedGradient += `${color}`;
+            }
+            if (i < key.finger.length - 1) {
+                computedGradient += ", ";
+            }
+        }
+        computedGradient += ");";
+        return <div class={colorOverlayStyle(computedGradient)}>{children}</div>;
+    }
+
     const mapCharsToKeyElements = (keys: KeyElement[]): JSX.Element[] => {
         const elements: JSX.Element[] = [];
         keys.map((key, index) => {
             const isHighlighted = props.highlighted?.includes(key.char);
             const isIgnored = props.ignored?.includes(key.char)
-                || (props.ignoreSpecialKeys && key.categories.includes(KeyType.Special))
-                || (props.ignoreNumericKeys && key.categories.includes(KeyType.Numeric))
-                || (props.ignoreAlphabeticKeys && key.categories.includes(KeyType.Alphabetic))
-                || (props.ignoreGrammarKeys && key.categories.includes(KeyType.Grammar))
-                || (props.ignoreMathKeys && key.categories.includes(KeyType.Math));
+                || (props.ignoreSpecialKeys && key.symbolTypes.includes(SymbolType.Special))
+                || (props.ignoreNumericKeys && key.symbolTypes.includes(SymbolType.Numeric))
+                || (props.ignoreAlphabeticKeys && key.symbolTypes.includes(SymbolType.Alphabetic))
+                || (props.ignoreGrammarKeys && key.symbolTypes.includes(SymbolType.Grammar))
+                || (props.ignoreMathKeys && key.symbolTypes.includes(SymbolType.Math));
 
             let computedStyle = keyBaseStyle;
             if (isIgnored) {
@@ -165,10 +178,16 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
                 `;
             }
 
+            const children = (
+                <>
+                <div class={keyboardTextStyle}>{key.char}</div>
+                {appendDotIfForJ(key)}
+                </>
+            );
+
             elements.push(
                 <div class={computedStyle} id={"okb-" + key.char} ref={(el) => kbKeyHtmlElementMap.set(key.char, el)}>
-                    <div>{key.char}</div>
-                    {appendDotIfForJ(key)}
+                    {colourizeTheButtonIfApplicable(key, isIgnored && !isHighlighted, children)}
                 </div>
             )
         });
@@ -214,6 +233,28 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
     )
 }
 
+const keyboardTextStyle = css`
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    font-family: monospace;
+    text-shadow: 0 0 .1rem white;
+    padding-bottom: .5rem;
+`;
+
+const colorOverlayStyle = (color: string) => css`
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    display: grid;
+    align-items: center;
+    background-image: ${color};
+    border-radius: .5rem;
+`;
+
 const handsOverlayContainerStyle = css`
     position: absolute;
     top: 0;
@@ -240,14 +281,10 @@ const keyBaseStyle = css`
     width: calc(100% - ${keySpacing});
     height: 100%;
     border-radius: .5rem;
-    color: black;
+    color: #000;
     display: grid;
     align-items: center;
     background-image: linear-gradient(0deg, #555 0%, #999 20%);
-    text-align: center;
-    text-transform: uppercase;
-    font-family: monospace;
-    font-size: 1.25rem;
     &:hover {
         color: white;
         filter: drop-shadow(0 0 1rem white);
@@ -259,10 +296,8 @@ const fjBumpStyle = css`
     width: 1rem;
     height: .25rem;
     border-radius: .5rem;
-    background-image: linear-gradient(0deg, #555, #DDD);
-    z-index: 10000;
-    transform: translateX(-50%);
+    background-image: linear-gradient(0deg, black, black);
+    z-index: 100;
+    transform: translate(-50%, -100%);
     left: 50%;
-    padding: 0;
-    margin: 0;
     `;

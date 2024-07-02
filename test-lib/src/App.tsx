@@ -16,7 +16,7 @@ const App: Component = () => {
     <div class="app">
       <h1>Hello world!!!!</h1>
       <Comp />
-      <OnScreenKeyboard />
+      <OnScreenKeyboard colorizationIntensity={1} fingeringSchemeFocused={0} hardShadeMultiFingerKeyGradients={false} />
     </div>
   );
 };
