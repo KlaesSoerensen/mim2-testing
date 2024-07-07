@@ -1,13 +1,17 @@
 import type { Component } from 'solid-js';
 import Comp from './Comp';
 import OnScreenKeyboard from './fingerPlacementTest/OnScreenKeyboard';
-import { css } from '@emotion/css';
+import SocketRawOutput from './socket/SocketRawOutput';
+import FingerPlacementTest from './fingerPlacementTest/FingerPlacementTest';
+import { injectGlobal } from '@emotion/css';
 
-const playerStyle = (x: number, y: number) => css`
-  top: ${y}px;
-  left: ${x}px;
-  transition: all 0.3s linear;
-`
+injectGlobal`
+  body {
+    margin: 0;
+    padding: 1rem;
+    font-family: sans-serif;
+  }
+`;
 
 const App: Component = () => {
   // Player is shooting {whom}
@@ -16,7 +20,7 @@ const App: Component = () => {
     <div class="app">
       <h1>Hello world!!!!</h1>
       <Comp />
-      <OnScreenKeyboard colorizationIntensity={1} fingeringSchemeFocused={0} hardShadeMultiFingerKeyGradients={false} />
+      <FingerPlacementTest />
     </div>
   );
 };

@@ -75,24 +75,25 @@ interface OnScreenKeyboardProps {
     layout?: KeyElement[][];
 }
 const normalizeProps = (props: OnScreenKeyboardProps): OnScreenKeyboardProps => {
-    props.highlighted = props.highlighted || [];
+    return {
+        highlighted: props.highlighted || [],
+        ignored: props.ignored || [],
 
-    props.ignored = props.ignored || [];
-    props.ignoreSpecialKeys = props.ignoreSpecialKeys || false;
-    props.ignoreNumericKeys = props.ignoreNumericKeys || false;
-    props.ignoreAlphabeticKeys = props.ignoreAlphabeticKeys || false;
-    props.ignoreGrammarKeys = props.ignoreGrammarKeys || false;
-    props.ignoreMathKeys = props.ignoreMathKeys || false;
+        ignoreSpecialKeys: props.ignoreSpecialKeys || false,
+        ignoreNumericKeys: props.ignoreNumericKeys || false,
+        ignoreAlphabeticKeys: props.ignoreAlphabeticKeys || false,
+        ignoreGrammarKeys: props.ignoreGrammarKeys || false,
+        ignoreMathKeys: props.ignoreMathKeys || false,
 
-    props.showHands = props.showHands || false;
-    props.showIntendedFingerUseForKey = props.showIntendedFingerUseForKey || true;
-    props.fingeringSchemeFocused = props.fingeringSchemeFocused || -1;
-    props.hardShadeMultiFingerKeyGradients = props.hardShadeMultiFingerKeyGradients || true;
-    props.colorizationIntensity = props.colorizationIntensity || 1;
+        showHands: props.showHands || false,
 
-    props.layout = props.layout || DK_KEYBOARD_LAYOUT;
+        showIntendedFingerUseForKey: props.showIntendedFingerUseForKey || true,
+        fingeringSchemeFocused: Number.isSafeInteger(props.fingeringSchemeFocused) ? props.fingeringSchemeFocused : -1,
+        hardShadeMultiFingerKeyGradients: props.hardShadeMultiFingerKeyGradients || true,
+        colorizationIntensity: props.colorizationIntensity || .7,
 
-    return props;
+        layout: props.layout || DK_KEYBOARD_LAYOUT,
+    };
 }
 
 const keySpacing = ".25rem";
@@ -113,10 +114,10 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
             return <>{children}</>;
         }
         //In the case that a specific scheme is requested OR no alternative fingerings are available
-        if(props.fingeringSchemeFocused != -1 || key.finger.length == 1){
+        if(props.fingeringSchemeFocused > -1 || key.finger.length == 1){
             let indexToUse = key.finger.length - 1;
             if(props.fingeringSchemeFocused != -1){
-                indexToUse = props.fingeringSchemeFocused > key.finger.length - 1 ? key.finger.length - 1 : props.fingeringSchemeFocused;
+                indexToUse = props.fingeringSchemeFocused >= key.finger.length ? key.finger.length - 1 : props.fingeringSchemeFocused;
             }
             const finger = key.finger[indexToUse];
             const constColor = `rgba(${FINGER_COLORS[finger]}, ${props.colorizationIntensity})`;
@@ -158,24 +159,10 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
 
             let computedStyle = keyBaseStyle;
             if (isIgnored) {
-                computedStyle = css`
-                    ${keyBaseStyle}
-                    background-image: linear-gradient(0deg, #333 0%, #555 20%);
-                    color: #666;
-                    &:hover {
-                        color: #666;
-                        filter: none;
-                    }
-                `;
+                computedStyle = css`${keyBaseStyle} ${keyIgnoredStyle}`;
             }
             if (isHighlighted) {
-                computedStyle = css`
-                    ${keyBaseStyle}
-                    background-image: linear-gradient(0deg, #111 0%, #333 20%);
-                    outline: 2px solid white;
-                    color: white;
-                    filter: drop-shadow(0 0 1rem white);
-                `;
+                computedStyle = css`${keyBaseStyle} ${keyHighlightedStyle}`;
             }
 
             const children = (
@@ -222,9 +209,9 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
 
     // Render
     return (
-        <div class={containerStyle}>
+        <div class={containerStyle} id="on-screen-keyboard">
             {props.layout.map((row, index) => (
-                <div class={computeStylesForRow(row)}>
+                <div class={computeStylesForRow(row)} id="keyboard-row">
                     {mapCharsToKeyElements(row)}
                 </div>
             ))}
@@ -242,6 +229,9 @@ const keyboardTextStyle = css`
     font-family: monospace;
     text-shadow: 0 0 .1rem white;
     padding-bottom: .5rem;
+    &:hover {
+      text-shadow: 0 0 .1rem black;
+    }
 `;
 
 const colorOverlayStyle = (color: string) => css`
@@ -270,7 +260,9 @@ const containerStyle = css`
     display: grid;
     grid-template-rows: repeat(5, 1fr);
     row-gap: ${keySpacing};
-    height: 13rem;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
     padding: .25rem;
     padding-bottom: .5rem;
     border-radius: .5rem;
@@ -289,6 +281,21 @@ const keyBaseStyle = css`
         color: white;
         filter: drop-shadow(0 0 1rem white);
     }
+`;
+
+const keyHighlightedStyle = css`
+    background-image: linear-gradient(0deg, #111 0%, #333 20%);
+    outline: 2px solid white;
+    color: white;
+    filter: drop-shadow(0 0 1rem white);
+`;
+
+const keyIgnoredStyle = css`
+    background-image: linear-gradient(0deg, #333 0%, #555 20%);
+    color: #666;
+    &:hover {
+    color: #666;
+    filter: none;
 `;
 
 const fjBumpStyle = css`
