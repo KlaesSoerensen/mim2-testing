@@ -20,7 +20,7 @@ const App: Component = () => {
     <div class="app">
       <h1>Hello world!!!!</h1>
       <Comp />
-      <FingerPlacementTest />
+      <FingerPlacementTest whenCompleteDo={() => console.log("You got it")}/>
     </div>
   );
 };

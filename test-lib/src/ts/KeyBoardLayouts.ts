@@ -20,7 +20,7 @@ export enum Fingers {
 /**
  * Raw, comma-separated RGB values for the colors of the fingers
  */
-export const FINGER_COLORS = [
+export const FINGER_COLORS: [string, string, string, string, string, string, string, string, string, string] = [ //This type annotation just says "10 index string array"
     "224, 255, 225",
     "12, 174, 59",
     "139, 255, 151",

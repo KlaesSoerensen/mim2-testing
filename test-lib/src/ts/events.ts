@@ -1,5 +1,7 @@
+type Listener = {target: HTMLElement | Document, eventName: string, callback: (event: any) => void};
+
+const listeners = new Map<number, Listener>();
 let nextId = 0;
-const listeners = new Map();
 
 export const createListener = (target: HTMLElement | Document, eventName: string, callback: (event: any) => void) => {
     const id = nextId++;

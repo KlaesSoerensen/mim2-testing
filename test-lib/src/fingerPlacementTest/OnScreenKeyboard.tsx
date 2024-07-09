@@ -75,24 +75,25 @@ interface OnScreenKeyboardProps {
     layout?: KeyElement[][];
 }
 const normalizeProps = (props: OnScreenKeyboardProps): OnScreenKeyboardProps => {
+    console.log("Highlighted: ", props.highlighted);
     return {
-        highlighted: props.highlighted || [],
-        ignored: props.ignored || [],
+        highlighted: props.highlighted ?? [],
+        ignored: props.ignored ?? [],
 
-        ignoreSpecialKeys: props.ignoreSpecialKeys || false,
-        ignoreNumericKeys: props.ignoreNumericKeys || false,
-        ignoreAlphabeticKeys: props.ignoreAlphabeticKeys || false,
-        ignoreGrammarKeys: props.ignoreGrammarKeys || false,
-        ignoreMathKeys: props.ignoreMathKeys || false,
+        ignoreSpecialKeys: props.ignoreSpecialKeys ?? false,
+        ignoreNumericKeys: props.ignoreNumericKeys ?? false,
+        ignoreAlphabeticKeys: props.ignoreAlphabeticKeys ?? false,
+        ignoreGrammarKeys: props.ignoreGrammarKeys ?? false,
+        ignoreMathKeys: props.ignoreMathKeys ?? false,
 
-        showHands: props.showHands || false,
+        showHands: props.showHands ?? false,
 
-        showIntendedFingerUseForKey: props.showIntendedFingerUseForKey || true,
-        fingeringSchemeFocused: Number.isSafeInteger(props.fingeringSchemeFocused) ? props.fingeringSchemeFocused : -1,
-        hardShadeMultiFingerKeyGradients: props.hardShadeMultiFingerKeyGradients || true,
-        colorizationIntensity: props.colorizationIntensity || .7,
+        showIntendedFingerUseForKey: props.showIntendedFingerUseForKey ?? true,
+        fingeringSchemeFocused: props.fingeringSchemeFocused ?? -1,
+        hardShadeMultiFingerKeyGradients: props.hardShadeMultiFingerKeyGradients ?? true,
+        colorizationIntensity: props.colorizationIntensity ?? .7,
 
-        layout: props.layout || DK_KEYBOARD_LAYOUT,
+        layout: props.layout ?? DK_KEYBOARD_LAYOUT,
     };
 }
 
@@ -202,9 +203,8 @@ export default function OnScreenKeyboard(props: OnScreenKeyboardProps) {
                     </svg>
                 </div>
             )
-        }else{
-            return <></>;
         }
+        return <></>;
     }
 
     // Render
