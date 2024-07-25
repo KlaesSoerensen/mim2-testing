@@ -4,6 +4,8 @@ import OnScreenKeyboard from './fingerPlacementTest/OnScreenKeyboard';
 import SocketRawOutput from './socket/SocketRawOutput';
 import FingerPlacementTest from './fingerPlacementTest/FingerPlacementTest';
 import { injectGlobal } from '@emotion/css';
+import InputBufferDisplay from './inputTester/InputBufferDisplay';
+import { InputBuffer } from './ts/inputBuffer';
 
 injectGlobal`
   body {
@@ -14,13 +16,20 @@ injectGlobal`
 `;
 
 const App: Component = () => {
-  // Player is shooting {whom}
-  // Asteroid spawned {where, velocity, size, charCombo}
+  let self;
+
+
   return (
-    <div class="app">
+    <div class="app" ref={self}>
       <h1>Hello world!!!!</h1>
       <Comp />
-      <FingerPlacementTest whenCompleteDo={() => console.log("You got it")}/>
+      <FingerPlacementTest 
+        whenCompleteDo={() => {console.log("Sequence complete")}} 
+        onFailDo={() => {console.log("Sequence failed")}} 
+        topLevelCapturer={document}
+      />
+        
+        
     </div>
   );
 };

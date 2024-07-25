@@ -13,14 +13,26 @@ interface PlacementTestProps {
     sequence?: {l: string, r: string}[],
     /**
      * Max delay between inputs for each element in the sequence.
-     * @default 500
+     * @default 150
      */
     maxInputDelayMs?: number,
     /**
      * Max delay between elements in the sequence.
      * @default 1000
      */
-    maxSequenceDelayMs?: number
+    maxSequenceDelayMs?: number,
+    /**
+     * The element to capture key events from.
+     * @default document
+     */
+    topLevelCapturer?: HTMLElement | Document,
+    /**
+     * The amount of times per second the display is updated.
+     * This is also the "fps" of checking current inputs against the sequence. 
+     * With lower maxInputDelayMs values, this should be higher.
+     * @default 50
+     */
+    updateResolution?: number
 }
 
 const generateSequence = (): {l: string, r: string}[] => {
@@ -40,8 +52,10 @@ const normalizeProps = (props: PlacementTestProps): PlacementTestProps => {
         onFailDo: props.onFailDo ?? (() => {}), //NOOP
         whenCompleteDo: props.whenCompleteDo,
         sequence: props.sequence ?? generateSequence(),
-        maxInputDelayMs: props.maxInputDelayMs ?? 750,
-        maxSequenceDelayMs: props.maxSequenceDelayMs ?? 1000
+        maxInputDelayMs: props.maxInputDelayMs ?? 150,
+        maxSequenceDelayMs: props.maxSequenceDelayMs ?? 1000,
+        // topLevelCapturer is handled specially as it defaults to this' resulting DOM element
+        updateResolution: props.updateResolution ?? 50
     }
 }
 function removeFirst<T>(arr: T[], predicate: (value: T) => boolean): T[] {
@@ -59,7 +73,33 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
     const [listenerId, setListenerId] = createSignal<number>(0);
     const [currentCountdownNumber, setCurrentCountdownNumber] = createSignal<number>(3);
     const [timeLeftOfCurrentElement, setTimeLeftOfCurrentElement] = createSignal<number>(currentCountdownNumber() * 1000 + props.maxSequenceDelayMs);
-    const [barUpdateInterval, setBarUpdateInterval] = createSignal<NodeJS.Timeout | null>(null);
+    const [updateInterval, setUpdateInterval] = createSignal<NodeJS.Timeout | null>(null);
+    let self: HTMLDivElement; //This element as shown in the DOM, initialized in the return statement
+
+    const checkCompletion = (buffer: string[]) => {
+        //If buffer contains the targets, move to next target
+        let foundLTarget = false;
+        let foundRTarget = false;
+        const target = currentTarget();
+        for (const char of buffer) {
+            if (char === target[0]) foundLTarget = true;
+            if (char === target[1]) foundRTarget = true;
+        }
+
+        if (foundLTarget && foundRTarget) {
+            setSequenceIndex(sequenceIndex() + 1);
+            const nextTarget = props.sequence[sequenceIndex()];
+            if (sequenceIndex() === props.sequence.length - 1 || !nextTarget) {
+                props.whenCompleteDo();
+                removeListener(listenerId());
+                clearInterval(updateInterval());
+                return;
+            }
+            setCurrentTarget([nextTarget.l, nextTarget.r]);
+            setInputBuffer([]);
+            setTimeLeftOfCurrentElement(props.maxSequenceDelayMs);
+        }
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
         const currentBuffer = inputBuffer();
@@ -70,53 +110,35 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
         //However, remove it again after maxDelayMs
         setTimeout(() => {
             //Remove the key from the buffer
+            //Remove only the first as the user may be pressing it multiple times - which is allowed
             setInputBuffer(removeFirst(currentBuffer, char => char != keyInput));
         }, props.maxInputDelayMs);
-
-        //If buffer contains the targets, move to next target
-        let foundLTarget = false;
-        let foundRTarget = false;
-        const target = currentTarget();
-        for (const char of currentBuffer) {
-            if (char === target[0]) foundLTarget = true;
-            if (char === target[1]) foundRTarget = true;
-        }
-
-        console.log(currentTarget(), foundLTarget, foundRTarget);
-
-        if (foundLTarget && foundRTarget) {
-            setSequenceIndex(sequenceIndex() + 1);
-            const nextTarget = props.sequence[sequenceIndex()];
-            if (sequenceIndex() === props.sequence.length - 1 || !nextTarget) {
-                props.whenCompleteDo();
-                removeListener(listenerId());
-                clearInterval(barUpdateInterval());
-                return;
-            }
-            setCurrentTarget([nextTarget.l, nextTarget.r]);
-            setInputBuffer([]);
-            setTimeLeftOfCurrentElement(props.maxSequenceDelayMs);
-        }
+        console.log(currentTarget());
+        checkCompletion(currentBuffer);
     }
     onCleanup(() => {
         removeListener(listenerId());
-        clearInterval(barUpdateInterval());
+        clearInterval(updateInterval());
     });
 
-    setTimeout(() => {setCurrentCountdownNumber(currentCountdownNumber() - 1)}, 1000);
-    setTimeout(() => {setCurrentCountdownNumber(currentCountdownNumber() - 1)}, 2000);
-    setTimeout(() => {
-        setListenerId(createListener(document, "keydown", onKeyDown));
+    const andSoItBegins = () => {
+        const computedCapturer = props.topLevelCapturer ?? self;
+        setListenerId(createListener(computedCapturer, "keydown", onKeyDown));
         setCurrentCountdownNumber(currentCountdownNumber() - 1)
         setSequenceIndex(0);
         const nextTarget = props.sequence[sequenceIndex()];
         setCurrentTarget([nextTarget.l, nextTarget.r]);
         setTimeLeftOfCurrentElement(props.maxSequenceDelayMs);
-        const updateResolution = 100; //MS
-        setBarUpdateInterval(setInterval(() => {
-            setTimeLeftOfCurrentElement(Math.max(0, timeLeftOfCurrentElement() - updateResolution));
-        }, updateResolution));
-    }, 3000);
+        const computedUpdateResolution = 1000 / props.updateResolution;
+        setUpdateInterval(setInterval(() => {
+            setTimeLeftOfCurrentElement(Math.max(0, timeLeftOfCurrentElement() - computedUpdateResolution));
+            checkCompletion(inputBuffer());
+        }, computedUpdateResolution));
+    }
+
+    setTimeout(() => {setCurrentCountdownNumber(currentCountdownNumber() - 1)}, 1000);
+    setTimeout(() => {setCurrentCountdownNumber(currentCountdownNumber() - 1)}, 2000);
+    setTimeout(andSoItBegins, 3000);
 
     const appendInitialCountdown = () => {
         if (currentCountdownNumber() <= 0) {
@@ -126,7 +148,7 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
     }
 
     return (
-        <div class={containerStyle} id="finger-placement-test">
+        <div class={containerStyle} id="finger-placement-test" ref={self}>
             <h2>Finger Placement Test</h2>
             <OnScreenKeyboard highlighted={currentTarget()} ignoreGrammarKeys ignoreNumericKeys ignoreMathKeys
                   ignoreSpecialKeys fingeringSchemeFocused={0} ignored={[...inputBuffer(), "Space"]}/>
