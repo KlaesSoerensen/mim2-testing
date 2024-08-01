@@ -1,0 +1,83 @@
+    @startuml
+'https://plantuml.com/sequence-diagram
+title Player Sequence Diagram
+header Version 1.0 - Documentation
+footer Diagram generated on: 2024-05-11
+
+box "Core Module"
+participant Game
+box end
+
+box "Common Module"
+participant World
+participant GameData
+end box
+
+box "Player Module"
+participant PlayerControlSystem
+participant Player
+end box
+
+box "CommonBullet Module"
+participant BulletSPI
+participant "Collection<? extends BulletSPI>"
+end box
+
+Game -> PlayerControlSystem
+group process(GameData, World)
+    World <- PlayerControlSystem : getEntities(Player.class)
+    World -> PlayerControlSystem : Return **List<Entity>**
+    loop for each Entity
+        alt if Entity is Player
+            PlayerControlSystem -> GameData : getKeys()
+            PlayerControlSystem <- GameData : Return **GameKeys**
+            alt if GameKeys.LEFT is pressed
+                PlayerControlSystem -> Player : **Operate on Player**
+                Player -> Player : setRotation(player.getRotation() - 5)
+                Player -> PlayerControlSystem : **Return flow**
+            else if GameKeys.RIGHT is pressed
+                PlayerControlSystem -> Player : **Operate on Player**
+                Player -> Player : setRotation(player.getRotation() + 5)
+                Player -> PlayerControlSystem : **Return flow**
+            end
+            alt if GameKeys.UP is pressed
+                PlayerControlSystem -> Player : **Operate on Player**
+                Player -> Player : player.setX(player.getX() + changeX)
+                Player -> Player : player.setX(player.getY() + changeY)
+                Player -> PlayerControlSystem : **Return flow**
+            end
+            alt if GameKeys.SPACE is pressed
+                PlayerControlSystem -> "Collection<? extends BulletSPI>" : getBulletSPIs()
+                PlayerControlSystem <- "Collection<? extends BulletSPI>" : Return **Collection<? extends BulletSPI>**
+                loop for each BulletSPI
+                    PlayerControlSystem -> BulletSPI : **Operate on BulletSPI**
+                    BulletSPI -> BulletSPI : bulletSPI.createBullet(player, gameData)
+                    BulletSPI -> World : world.addEntity(**Bullet Entity**)
+                    World -> PlayerControlSystem : **Return flow**
+                end
+                PlayerControlSystem -> Player : **Operate on Player**
+                Player -> Player : Reset bullet cool-down
+                Player -> PlayerControlSystem : **Return flow**
+            end
+
+            PlayerControlSystem -> Player : **Operate on Player**
+            Player -> Player : Player.bulletCooldown--
+            Player -> Player : Player.setDamageTimer(player.getDamageTimer() - 1)
+            alt if Player.getHealth() <= 0
+                            Player -> Player : setPolygonCoordinates(0)
+            end
+            Player -> PlayerControlSystem : **Return flow**
+        end
+    end
+end
+PlayerControlSystem -> Game
+
+group getBulletSPIs()
+    PlayerControlSystem -> BulletSPI : load(BulletSPI.class)
+    PlayerControlSystem <- BulletSPI : Return **ServiceLoader<BulletSPI>**
+    loop for each BulletSPI provider
+        PlayerControlSystem -> "Collection<? extends BulletSPI>" : add(provider.get())
+        "Collection<? extends BulletSPI>" -> PlayerControlSystem : **Return flow**
+    end
+end
+@enduml

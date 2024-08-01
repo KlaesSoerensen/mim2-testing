@@ -1,0 +1,65 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+
+box "Clients"
+actor "Player1"
+actor "Player2"
+box
+
+box "Backend"
+participant "Main backend"
+participant "Main DB"
+participant "Multiplayer Backend"
+participant "● (Pub-Sub)" as pubsub
+box
+
+'Flow'
+
+'Players Join Gamelobby'
+Player1 -> "Multiplayer Backend" : Player1 joins the game.
+Player2 -> "Multiplayer Backend" : Player2 joins the game.
+"Multiplayer Backend" <-> "Main DB" : Game data is fetched.
+"Multiplayer Backend" -> "Multiplayer Backend" : Game is set up and initialized.
+
+"Multiplayer Backend" -> "Player1" : Data is distributed.
+"Multiplayer Backend" -> "Player2" : Data is distributed.
+"Multiplayer Backend" -> pubsub : Game-start is announced.
+pubsub -> "Player1" : Initial update.
+pubsub -> "Player2" : Initial update.
+
+'Main Game Flow'
+note right of "Player1"
+  Game logic will update as needed during this loop. This flow focuses on the multiplayer interaction among
+  players.
+end note
+loop Game Loop
+    alt if (Event Occurs)
+        note right of "Player1"
+          Events can be multiple things, in the case of the asteroids mini-game, such an event could be when any
+          player shoots an asteroid or ally. The game runs independently at a given framerate for clients, while
+          multiplayer events are published by the executing client and received and updated by all subscribing
+          clients.
+          (What if two clients publish the same event before subscribers are updated? Pub-Sub server check to see
+          if event already exists and then update all clients, including publisher?).
+        end note
+
+        "Player1" -> pubsub : Any event occurs **(Player1)**.
+        "Player2" <- pubsub : Other players receive an update **(Player1)**.
+        "Player2" -> pubsub : Any event occurs **(Player2)**.
+        "Player1" <- pubsub : Other players receive an update **(Player2)**.
+    end
+end
+
+'Game Over'
+"Multiplayer Backend" -> "Multiplayer Backend" : "Game Over" conditions are \nmet, the game ends.
+"Multiplayer Backend" -> pubsub : Publishes "Game Over" event.
+pubsub -> "Player1" : **Player1** disconnects.
+pubsub -> "Player2" : **Player2** disconnects.
+
+
+
+
+
+
+@enduml
