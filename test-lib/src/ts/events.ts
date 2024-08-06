@@ -7,6 +7,7 @@ export const createListener = (target: HTMLElement | Document, eventName: string
     const id = nextId++;
     listeners.set(id, {target, eventName, callback});
     target.addEventListener(eventName, callback);
+    console.log(target)
     return id;
 }
 

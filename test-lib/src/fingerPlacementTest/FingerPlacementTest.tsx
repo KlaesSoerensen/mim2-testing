@@ -3,6 +3,7 @@ import { createSignal, onCleanup, createEffect } from "solid-js";
 import { createListener, removeListener } from "../ts/events";
 import { css } from '@emotion/css';
 
+type SequenceSegment = {l: string, r: string};
 interface PlacementTestProps {
     whenCompleteDo: () => void,
     onFailDo?: () => void,
@@ -10,7 +11,7 @@ interface PlacementTestProps {
      * The sequence of keys to be pressed.
      * @default [{l: 'f', r: 'j'}, {l: "d", r: "k"}, {l: "s", r: "l"}]
      */
-    sequence?: {l: string, r: string}[],
+    sequence?: SequenceSegment[],
     /**
      * Max delay between inputs for each element in the sequence.
      * @default 150
@@ -35,15 +36,14 @@ interface PlacementTestProps {
     updateResolution?: number
 }
 
-const generateSequence = (): {l: string, r: string}[] => {
-    const sequence = [{l: 'f', r: 'j'}];
+const generateSequence = (): SequenceSegment[] => {
+    const sequence: SequenceSegment[] = [{l: 'f', r: 'j'}];
     const length = Math.random() > .5 ? 2 : 3;
     for (let i = 0; i < length; i++) {
         const l = ["d", "s", "a", "e", "r", "c", "x"][Math.floor(Math.random() * 7)];
         const r = ["k", "l", "m", "i", "o"][Math.floor(Math.random() * 5)];
-        sequence.push({l, r});
+        sequence.push({l: l, r: r});
     }
-    console.log(sequence)
     return sequence;
 }
 
@@ -52,7 +52,7 @@ const normalizeProps = (props: PlacementTestProps): PlacementTestProps => {
         onFailDo: props.onFailDo ?? (() => {}), //NOOP
         whenCompleteDo: props.whenCompleteDo,
         sequence: props.sequence ?? generateSequence(),
-        maxInputDelayMs: props.maxInputDelayMs ?? 150,
+        maxInputDelayMs: props.maxInputDelayMs ?? 200,
         maxSequenceDelayMs: props.maxSequenceDelayMs ?? 1000,
         // topLevelCapturer is handled specially as it defaults to this' resulting DOM element
         updateResolution: props.updateResolution ?? 50
@@ -68,7 +68,7 @@ function removeFirst<T>(arr: T[], predicate: (value: T) => boolean): T[] {
 export default function FingerPlacementTest(props: PlacementTestProps) {
     props = normalizeProps(props);
     const [sequenceIndex, setSequenceIndex] = createSignal<number>(0);
-    const [currentTarget, setCurrentTarget] = createSignal<[string, string]>([props.sequence[sequenceIndex()].l, props.sequence[sequenceIndex()].r]);
+    const [currentSegment, setCurrentSegment] = createSignal<SequenceSegment>(props.sequence[0]);
     const [inputBuffer, setInputBuffer] = createSignal<string[]>([]);
     const [listenerId, setListenerId] = createSignal<number>(0);
     const [currentCountdownNumber, setCurrentCountdownNumber] = createSignal<number>(3);
@@ -76,26 +76,26 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
     const [updateInterval, setUpdateInterval] = createSignal<NodeJS.Timeout | null>(null);
     let self: HTMLDivElement; //This element as shown in the DOM, initialized in the return statement
 
-    const checkCompletion = (buffer: string[]) => {
+    const checkCompletion = (buffer: string[], segment: SequenceSegment) => {
         //If buffer contains the targets, move to next target
         let foundLTarget = false;
         let foundRTarget = false;
-        const target = currentTarget();
         for (const char of buffer) {
-            if (char === target[0]) foundLTarget = true;
-            if (char === target[1]) foundRTarget = true;
+            if (char === segment[0]) foundLTarget = true;
+            if (char === segment[1]) foundRTarget = true;
         }
 
         if (foundLTarget && foundRTarget) {
+            console.log("Advancing sequence")
             setSequenceIndex(sequenceIndex() + 1);
             const nextTarget = props.sequence[sequenceIndex()];
-            if (sequenceIndex() === props.sequence.length - 1 || !nextTarget) {
+            if (sequenceIndex() >= props.sequence.length - 1 || !nextTarget) {
                 props.whenCompleteDo();
                 removeListener(listenerId());
                 clearInterval(updateInterval());
                 return;
             }
-            setCurrentTarget([nextTarget.l, nextTarget.r]);
+            setCurrentSegment(nextTarget);
             setInputBuffer([]);
             setTimeLeftOfCurrentElement(props.maxSequenceDelayMs);
         }
@@ -113,8 +113,8 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
             //Remove only the first as the user may be pressing it multiple times - which is allowed
             setInputBuffer(removeFirst(currentBuffer, char => char != keyInput));
         }, props.maxInputDelayMs);
-        console.log(currentTarget());
-        checkCompletion(currentBuffer);
+        console.log(currentSegment());
+        checkCompletion(currentBuffer, currentSegment());
     }
     onCleanup(() => {
         removeListener(listenerId());
@@ -123,16 +123,17 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
 
     const andSoItBegins = () => {
         const computedCapturer = props.topLevelCapturer ?? self;
+        console.log("Capturer is", computedCapturer);
         setListenerId(createListener(computedCapturer, "keydown", onKeyDown));
         setCurrentCountdownNumber(currentCountdownNumber() - 1)
         setSequenceIndex(0);
         const nextTarget = props.sequence[sequenceIndex()];
-        setCurrentTarget([nextTarget.l, nextTarget.r]);
+        setCurrentSegment(nextTarget);
         setTimeLeftOfCurrentElement(props.maxSequenceDelayMs);
         const computedUpdateResolution = 1000 / props.updateResolution;
         setUpdateInterval(setInterval(() => {
             setTimeLeftOfCurrentElement(Math.max(0, timeLeftOfCurrentElement() - computedUpdateResolution));
-            checkCompletion(inputBuffer());
+            checkCompletion(inputBuffer(), currentSegment());
         }, computedUpdateResolution));
     }
 
@@ -150,7 +151,7 @@ export default function FingerPlacementTest(props: PlacementTestProps) {
     return (
         <div class={containerStyle} id="finger-placement-test" ref={self}>
             <h2>Finger Placement Test</h2>
-            <OnScreenKeyboard highlighted={currentTarget()} ignoreGrammarKeys ignoreNumericKeys ignoreMathKeys
+            <OnScreenKeyboard highlighted={[currentSegment().l, currentSegment().r]} ignoreGrammarKeys ignoreNumericKeys ignoreMathKeys
                   ignoreSpecialKeys fingeringSchemeFocused={0} ignored={[...inputBuffer(), "Space"]}/>
             <div class={barContainerStyle} id="bar-container">
                 <div class={timeBarStyleFunc(timeLeftOfCurrentElement(), props.maxSequenceDelayMs)} id="bar-bar"></div>

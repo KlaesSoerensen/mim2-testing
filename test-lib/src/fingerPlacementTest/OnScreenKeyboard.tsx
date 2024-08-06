@@ -269,14 +269,13 @@ const containerStyle = css`
 `;
 
 const keyBaseStyle = css`
-    border: 1.5px solid black;
     width: calc(100% - ${keySpacing});
     height: 100%;
     border-radius: .5rem;
     color: #000;
     display: grid;
     align-items: center;
-    background-image: linear-gradient(0deg, #555 0%, #999 20%);
+    background-image: linear-gradient(#555 0%, #AAA 5%, #AAA 80%, #333 100%);
     &:hover {
         color: white;
         filter: drop-shadow(0 0 1rem white);
@@ -284,14 +283,14 @@ const keyBaseStyle = css`
 `;
 
 const keyHighlightedStyle = css`
-    background-image: linear-gradient(0deg, #111 0%, #333 20%);
+    background-image: linear-gradient(#111 0%, #333 5%, #333 80%, #111 100%);
     outline: 2px solid white;
     color: white;
     filter: drop-shadow(0 0 1rem white);
 `;
 
 const keyIgnoredStyle = css`
-    background-image: linear-gradient(0deg, #333 0%, #555 20%);
+    background-image: linear-gradient(#333 0%, #555 5%, #555 80%, #333 100%);
     color: #666;
     &:hover {
     color: #666;
@@ -303,8 +302,8 @@ const fjBumpStyle = css`
     width: 1rem;
     height: .25rem;
     border-radius: .5rem;
-    background-image: linear-gradient(0deg, black, black);
+    background-image: linear-gradient(0deg, black, rgba(0, 0, 0, 0.1));
     z-index: 100;
     transform: translate(-50%, -100%);
     left: 50%;
-    `;
+`;

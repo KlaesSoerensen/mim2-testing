@@ -18,7 +18,6 @@ injectGlobal`
 const App: Component = () => {
   let self;
 
-
   return (
     <div class="app" ref={self}>
       <h1>Hello world!!!!</h1>
@@ -26,10 +25,8 @@ const App: Component = () => {
       <FingerPlacementTest 
         whenCompleteDo={() => {console.log("Sequence complete")}} 
         onFailDo={() => {console.log("Sequence failed")}} 
-        topLevelCapturer={document}
+        topLevelCapturer={self}
       />
-        
-        
     </div>
   );
 };
