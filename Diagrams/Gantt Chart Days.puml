@@ -1,0 +1,52 @@
+@startgantt
+Title Project Description Timeline
+
+Project starts 2024-08-01
+saturday are closed
+sunday are closed
+
+[Preparation of project contract] starts 2024-08-01 and ends 2024-08-01
+[Preparation of project contract] --> [Deadline for approval of supervisor contract]
+
+[Deadline for approval of supervisor contract] starts 2024-08-31 and ends 2024-08-31
+[Deadline for approval of supervisor contract] --> [Official start of project]
+
+[Official start of project] starts 2024-09-01 and ends 2024-09-01
+[Official start of project] --> [Start of prototyping process]
+
+[Start of prototyping process] starts 2024-09-01 and ends 2024-09-15
+[Start of prototyping process] --> [Skeleton and initial API definitions]
+[Start of prototyping process] --> [Graphic designer available for mock-ups]
+[Start of prototyping process] --> [Preliminary research and final report segments]
+
+[Skeleton and initial API definitions] starts 2024-09-15 and ends 2024-09-30
+[Graphic designer available for mock-ups] starts 2024-09-15 and ends 2024-09-30
+[Preliminary research and final report segments] starts 2024-09-15 and ends 2024-09-30
+[Skeleton and initial API definitions] --> [CI/CD-like solutions for skeleton implementations]
+
+[CI/CD-like solutions for skeleton implementations] starts 2024-10-01 and ends 2024-10-15
+[CI/CD-like solutions for skeleton implementations] --> [Building out services and integration testing]
+[CI/CD-like solutions for skeleton implementations] --> [Delivery of graphical assets]
+
+[Building out services and integration testing] starts 2024-10-15 and ends 2024-10-31
+[Delivery of graphical assets] starts 2024-10-01 and ends 2024-10-31
+[Building out services and integration testing] --> [Fundamental architectural elements complete and tested]
+
+[Fundamental architectural elements complete and tested] starts 2024-11-01 and ends 2024-11-15
+[Fundamental architectural elements complete and tested] --> [MVP complete]
+
+[MVP complete] starts 2024-11-15 and ends 2024-11-30
+[MVP complete] --> [Start of larger parts of report writing and adding game content]
+
+[Start of larger parts of report writing and adding game content] starts 2024-11-15 and ends 2024-12-31
+[Start of larger parts of report writing and adding game content] --> [Submission of report to Vitec MV]
+
+[Submission of report to Vitec MV] starts 2024-12-26 and ends 2024-12-26
+[Submission of report to Vitec MV] --> [Project completion]
+
+[Project completion] starts 2024-12-31 and ends 2024-12-31
+[Project completion] --> [Digital submission of project]
+
+[Digital submission of project] starts 2025-01-02 and ends 2025-01-02
+
+@endgantt
