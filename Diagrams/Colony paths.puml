@@ -1,0 +1,34 @@
+@startwbs
+graph TD
+    TH[Town Hall] -- connects --> HO[Home]
+    TH -- connects --> CA[Cantina]
+    TH -- connects --> VS[Vehicle Storage]
+    TH -- connects --> AC[Agriculture Center]
+    TH -- connects --> AP[Aquifer Plant]
+    TH -- connects --> SG[Shield Generators]
+
+    HO -- connects --> CA
+
+    VS -- connects --> MF[Mining Facility]
+    VS -- connects --> RD[Radar Dish]
+
+    AC -- connects --> AP
+
+    RD -- connects --> OW[Outer Walls]
+    RD -- connects --> SP[Space Port]
+
+    classDef central fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef residential fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef industrial fill:#fbb,stroke:#333,stroke-width:2px;
+    classDef agricultural fill:#bfb,stroke:#333,stroke-width:2px;
+    classDef defensive fill:#ffb,stroke:#333,stroke-width:2px;
+    classDef endpoint fill:#ff9,stroke:#333,stroke-width:4px;
+
+    class TH central;
+    class HO,CA residential;
+    class VS,MF industrial;
+    class AC,AP agricultural;
+    class RD,SG defensive;
+    class OW,SP endpoint;
+
+@endwbs
